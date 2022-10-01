@@ -57,6 +57,8 @@ import GoodsSku from './components/goods-sku'
 import GoodsTabs from './components/goods-tabs'
 import GoodsHot from './components/goods-hot'
 import GoodsWarn from './components/goods-warn.vue'
+import { useStore } from 'vuex'
+import Message from '@/components/library/Message'
 
 export default {
   name: 'XtxGoodsPage',
@@ -72,6 +74,8 @@ export default {
         goods.value.oldPrice = sku.oldPrice
         goods.value.inventory = sku.inventory
       }
+      // 记录选择后的sku 可能有数据， 可能没有数据 {}
+      currSku.value = sku
     }
 
     // 提供goods数据给后代组件使用,依赖注入
@@ -79,7 +83,36 @@ export default {
 
     // 选择的数量
     const num = ref(1)
-    return { goods, changeSku, num }
+
+    // 加入购物车
+    const store = useStore()
+    const currSku = ref(null)
+    const insertCart = () => {
+      if (currSku.value && currSku.value.skuId) {
+        const { skuId, specsText: attrsText, inventory: stock } = currSku.value
+        const { id, name, price, mainPictures } = goods.value
+        store.dispatch('cart/insertCart', {
+        // payload字段: id  商品名称id, skuId  商品规格SKUID, name  商品名称, attrsText  属性文字，例如“颜色:瓷白色 尺寸：8寸”, picture   商品图片,
+        // price  加入时价格, nowPrice  当前的价格, selected  是否选中, stock   库存,  count   数量, isEffective  是否为有效商品
+          skuId,
+          attrsText,
+          stock,
+          id,
+          name,
+          price,
+          nowPrice: price,
+          picture: mainPictures[0],
+          selected: true,
+          count: num.value,
+          isEffective: true
+        }).then(() => {
+          Message({ type: 'success', text: '添加购物车成功' })
+        })
+      } else {
+        Message({ text: '请选择完整的规格' })
+      }
+    }
+    return { goods, changeSku, num, insertCart }
   }
 }
 

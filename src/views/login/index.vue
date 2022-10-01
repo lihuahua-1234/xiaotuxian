@@ -1,4 +1,5 @@
 <template>
+<!--解绑手机号 http://pcapi-xiaotuxian-front-devtest.itheima.net/login/social/unbind?mobile=13126046713-->
 <!--头部-->
 <LoginHeader>欢迎登录</LoginHeader>
   <section class="login-section">
