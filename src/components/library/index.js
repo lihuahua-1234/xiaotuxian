@@ -10,6 +10,7 @@
 //   }
 import defaultImg from '@/assets/images/200.png'
 import Message from './Message'
+import Confirm from './Confirm'
 // vue3.0插件写法要求: 导出一个对象, 有install函数， 默认传入了app应用实例，aue基础之上扩展
 // import XtxSkeleton from './xtx-skeleton.vue'
 // import XtxCarousel from './xtx-carousel.vue'
@@ -50,6 +51,7 @@ export default {
 
     // 定义一个原型函数
     app.config.globalProperties.$message = Message
+    app.config.globalProperties.$confirm = Confirm
   }
 }
 

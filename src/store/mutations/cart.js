@@ -27,8 +27,29 @@ export default {
     // 有效商品总金额
     validAmount (state, getters) { // getters拿到 同级下的 getters 计算属性
       // return getters.validList.reduce((p, c) => p + c.nowPrice * 100 * c.count, 0) / 100
-      return getters.validList.reduce((p, c) => p + parseInt(c.nowPrice * 100) * c.count, 0) / 100
+      return getters.validList.reduce((p, c) => p + Math.round(c.nowPrice * 100) * c.count, 0) / 100
+    },
+    // 无效商品列表
+    invalidList (state) {
+      return state.list.filter(goods => goods.stock <= 0 || goods.isEffective === false)
+    },
+    // 已选商品列表
+    selectedList (state, getters) {
+      return getters.validList.filter(item => item.selected === true)
+    },
+    // 已选商品总件数
+    selectedTotal (state, getters) {
+      return getters.selectedList.reduce((p, c) => p + c.count, 0)
+    },
+    // 已选商品总金额
+    selectedAmount (state, getters) {
+      return getters.selectedList.reduce((p, c) => p + Math.round(c.nowPrice * 100) * c.count, 0) / 100
+    },
+    // 是否全选
+    isCheckAll (state, getters) {
+      return getters.validList.length !== 0 && getters.selectedList.length === getters.validList.length
     }
+
   },
 
   mutations: {
@@ -64,6 +85,7 @@ export default {
         // 没有相同商品添加商品的
         state.list.unshift(payload)
       }
+      // console.log(sameIndex)
     },
     // 修改购物车商品
     updateCart (state, goods) {
@@ -71,6 +93,7 @@ export default {
       // goods 商品对象 必须有SKUID， 不然我不知道改谁
       // goods 商品对象的字段不固定, 对象中有那些字段就改那些字段. 字段的值合理才改
       const updateGoods = state.list.find(item => item.skuId === goods.skuId)
+      console.log(updateGoods)
       for (const key in goods) { // 遍历 goods传进来的字段，有多少字段就遍历多少个字段
         if (goods[key] !== undefined && goods[key] !== null && goods[key] !== '') {
           updateGoods[key] = goods[key]
@@ -127,13 +150,40 @@ export default {
     },
     // 删除购物车
     deleteCart (context, payload) {
-      // 单条删除 payload 现在就是skuId
       return new Promise((resolve, reject) => {
         if (context.rootState.user.profile.token) {
           // 已登录
         } else {
           // 未登录
+          // 单条删除 payload 现在就是skuId
           context.commit('deleteCart', payload)
+          resolve()
+        }
+      })
+    },
+    // 修改购物车(选择状态，数量)
+    updateCart (context, payload) {
+      // payload 需要: 必需有skuId 可能: selected count
+      return new Promise((resolve, reject) => {
+        if (context.rootState.user.profile.token) {
+          // 已登录
+        } else {
+          // 未登录
+          context.commit('updateCart', payload)
+          resolve()
+        }
+      })
+    },
+    // 全选与取消全选
+    checkAllCart (context, selected) {
+      return new Promise((resolve, reject) => {
+        if (context.rootState.user.profile.token) {
+          // 已登录
+        } else {
+          // 未登录
+          context.getters.validList.forEach(goods => {
+            context.commit('updateCart', { skuId: goods.skuId, selected })
+          })
           resolve()
         }
       })

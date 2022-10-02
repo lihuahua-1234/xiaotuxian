@@ -4,6 +4,8 @@ const Home = () => import('@/views/home')
 const SubCategory = () => import('@/views/category/sub')
 const TopCategory = () => import('@/views/category/index')
 const Goods = () => import('@/views/goods/index')
+const Cart = () => import('@/views/cart/index')
+
 const Login = () => import('@/views/login/index')
 const LoginCallback = () => import('@/views/login/callback')
 // 路由规则
@@ -16,7 +18,8 @@ const routes = [
       { path: '/', component: Home },
       { path: '/category/:id', component: TopCategory }, // 一级分类地址
       { path: '/category/sub/:id', component: SubCategory }, // 二级分类地址
-      { path: '/product/:id', component: Goods } // 二级分类地址
+      { path: '/product/:id', component: Goods }, // 二级分类地址
+      { path: '/cart', component: Cart } // 二级分类地址
     ]
   },
   { path: '/login', component: Login },
