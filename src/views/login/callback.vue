@@ -2,17 +2,17 @@
 <template>
 <LoginHeader>联合登录</LoginHeader>
 <!--已登录-->
- <section class="container" v-if="isBind">
+<section class="container" v-if="isBind">
     <div class="unbind">
       <div class="loading"></div>
     </div>
   </section>
   <!--未登录-->
-   <section class="container" v-else>
+    <section class="container" v-else>
     <nav class="tab">
       <a @click="hasAccount=true" :class="{active:hasAccount}" href="javascript:;">
         <i class="iconfont icon-bind" />
- <span>已有小兔鲜账号，请绑定手机</span>
+        <span>已有小兔鲜账号，请绑定手机</span>
       </a>
       <a @click="hasAccount=false" :class="{active:!hasAccount}" href="javascript:;">
         <i class="iconfont icon-edit" />
@@ -20,13 +20,13 @@
       </a>
     </nav>
     <div class="tab-content" v-if="hasAccount">
-      <CallbackBind :unionId="unionId" :nickname="nickname" :avatar="avatar" />
+      <CallbackBind :unionId="unionId" />
     </div>
     <div class="tab-content" v-else>
       <CallbackPatch :unionId="unionId" />
     </div>
   </section>
-  <LoginFooter/>
+  <LoginFooter />
 </template>
 
 <script>
@@ -39,7 +39,7 @@ import QC from 'qc'
 import { userQQLogin } from '@/api/user'
 import Message from '@/components/library/Message'
 import { useStore } from 'vuex'
-import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 export default {
   components: {
     LoginHeader,
@@ -56,7 +56,7 @@ export default {
     // 1.3 如果失败: 该QQ未和小兔鲜进行绑定(有账号未绑定QQ, 没有账号未绑定QQ )
     const isBind = ref(true)
     const store = useStore()
-    const router = useRoute()
+    const router = useRouter()
     const unionId = ref(null)
     // 判断qq已经登录
     if (QC.Login.check()) {
@@ -69,10 +69,17 @@ export default {
           // 2. 存储用户信息
           const { id, account, avatar, mobile, nickname, token } = data.result
           store.commit('user/setUser', { id, account, avatar, mobile, nickname, token })
-          // 2.1 跳转到来源页或者首页
-          router.push(store.state.user.redirectUrl)
-          // 2.2 成功提示
-          Message({ type: 'success', text: 'QQ登录成功' })
+          // 登录成功合并购物车, 清空本地购物车
+          store.dispatch('cart/mergeCart').then(() => {
+            // 2.1 跳转到来源页或者首页
+            router.push(store.state.user.redirectUrl)
+            // 2.2 成功提示
+            Message({ type: 'success', text: 'QQ登录成功' })
+          })
+          // // 2.1 跳转到来源页或者首页
+          // router.push(store.state.user.redirectUrl)
+          // // 2.2 成功提示
+          // Message({ type: 'success', text: 'QQ登录成功' })
         }).catch(err => {
           // 登录失败: 没有和小兔鲜绑定
           isBind.value = false

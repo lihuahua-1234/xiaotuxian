@@ -26,22 +26,25 @@
             </td>
             </tr>
             <tr v-for="goods in $store.getters['cart/validList']" :key="goods.skuId">
-              <td><XtxCheckbox @change="($event) => checkOne(goods.skuId, $event)" :modelValue="goods.selected"/></td>
+              <td><XtxCheckbox @change="$event => checkOne(goods.skuId, $event)" :modelValue="goods.selected"/></td>
               <td>
                 <div class="goods">
                   <RouterLink :to="`/product/${goods.id}`"><img :src="goods.picture" alt=""></RouterLink>
                   <div>
                     <p class="name ellipsis">{{goods.name}}</p>
                     <!-- 选择规格组件 -->
+                    <CartSku @change="$event => updataCartSku(goods.skuId, $event)" :skuId="goods.skuId" :attrsText="goods.attrsText" />
                   </div>
                 </div>
               </td>
               <td class="tc">
                 <p>&yen;{{goods.nowPrice}}</p>
-                <p v-if="goods.price-goods.nowPrice > 0">比加入时降价 <span class="red">&yen;{{goods.price - goods.nowPrice}}</span></p>
+                <p v-if="goods.price-goods.nowPrice > 0">
+                  比加入时降价
+                  <span class="red">&yen;{{goods.price - goods.nowPrice}}</span></p>
               </td>
               <td class="tc">
-                <XtxNumbox :modeValue="goods.count"/>
+                  <XtxNumbox @change="$event=>updateCount(goods.skuId,$event)" :max="goods.stock" :modelValue="goods.count"/>
               </td>
               <td class="tc">
                 <p class="f16 red">&yen;{{Math.round(goods.nowPrice * 100) * goods.count / 100}}</p>
@@ -82,9 +85,9 @@
       <div class="action">
         <div class="batch">
           <XtxCheckbox @change="checkAll" :modelValue="$store.getters['cart/isCheckAll']">全选</XtxCheckbox>
-          <a href="javascript:;">删除商品</a>
+          <a @click="batchDeleteCart()" href="javascript:;">删除商品</a>
           <a href="javascript:;">移入收藏夹</a>
-          <a href="javascript:;">清空失效商品</a>
+          <a @click="batchDeleteCart(true)" href="javascript:;">清空失效商品</a>
         </div>
         <div class="total">
           共 {{$store.getters['cart/validTotal']}} 件商品，已选择 {{$store.getters['cart/selectedTotal']}} 件，商品合计：
@@ -103,9 +106,10 @@ import { useStore } from 'vuex'
 import Message from '@/components/library/Message'
 import CartNone from './components/cart-none.vue'
 import Confirm from '@/components/library/Confirm'
+import CartSku from './components/cart-sku.vue'
 export default {
   name: 'XtxCartPage',
-  components: { GoodRelevant, CartNone },
+  components: { GoodRelevant, CartNone, CartSku },
   setup () {
     const store = useStore()
     // 单选
@@ -127,10 +131,30 @@ export default {
         })
       }).catch(e => {
         // 点击取消
-        console.log('点击取消')
+        // console.log('点击取消')
       })
     }
-    return { checkOne, checkAll, deleteCart }
+    // 批量删除已选择中商品, 也支持清空无效商品
+    const batchDeleteCart = (isClear) => {
+      Confirm({ text: `你是否确认删除${isClear ? '失效' : '选中'}的商品` }).then(() => {
+        store.dispatch('cart/batchDeleteCart')
+      }).catch(e => {
+        // 点击取消
+        // console.log('点击取消')
+      })
+    }
+    // 修改数量
+    const updateCount = (skuId, count) => {
+      // console.log(count)
+      store.dispatch('cart/updateCart', { skuId, count })
+    }
+
+    // 修改规格 传入两个ID， 一个是旧的sku信息， 一个是新的sku信息
+    const updataCartSku = (oldSkuid, newSku) => {
+      store.dispatch('cart/updataCartSku', { oldSkuid, newSku })
+    }
+
+    return { checkOne, checkAll, deleteCart, batchDeleteCart, updateCount, updataCartSku }
   }
 }
 </script>

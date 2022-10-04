@@ -1,4 +1,4 @@
-import { getNewCartGoods } from '@/api/cart'
+import { getNewCartGoods, mergeCart } from '@/api/cart'
 
 // 购物车模块
 export default {
@@ -93,7 +93,6 @@ export default {
       // goods 商品对象 必须有SKUID， 不然我不知道改谁
       // goods 商品对象的字段不固定, 对象中有那些字段就改那些字段. 字段的值合理才改
       const updateGoods = state.list.find(item => item.skuId === goods.skuId)
-      console.log(updateGoods)
       for (const key in goods) { // 遍历 goods传进来的字段，有多少字段就遍历多少个字段
         if (goods[key] !== undefined && goods[key] !== null && goods[key] !== '') {
           updateGoods[key] = goods[key]
@@ -105,6 +104,11 @@ export default {
     deleteCart (state, skuId) {
       const index = state.list.findIndex(item => item.skuId === skuId)
       state.list.splice(index, 1)
+    },
+    // 设置购物车
+    setCart (state, payload) {
+      // payload 为空数组, 就叫清空， 如果有值数组，就叫设置
+      state.list = payload
     }
   },
 
@@ -137,7 +141,7 @@ export default {
           })
           // dataList成功结果的集合， 数据顺序和promiseArr顺序一致, 他又是根据state.list而来
           Promise.all(promiseArr).then(dataList => {
-            console.log('dataList', dataList)
+            // console.log('dataList', dataList)
             // 更新本地购物车
             dataList.forEach((data, i) => {
               context.commit('updateCart', { skuId: context.state.list[i].skuId, ...data.result })
@@ -187,6 +191,60 @@ export default {
           resolve()
         }
       })
+    },
+    // 批量删除
+    batchDeleteCart (context, isClear) {
+      return new Promise((resolve, reject) => {
+        if (context.rootState.user.profile.token) {
+          // 已登录
+        } else {
+          // 未登录
+          // 找出选择的商品列表，遍历调用删除的 mutations
+          // isClear 为 true 删除失效商品， 否则是选中的商品列表
+          context.getters[isClear ? 'invalidList' : 'selectedList'].selectedList.forEach(item => {
+            context.commit('deleteCart', item.skuId)
+          })
+          resolve()
+        }
+      })
+    },
+    // 修改规格
+    updataCartSku (context, { oldSkuid, newSku }) {
+      return new Promise((resolve, reject) => {
+        if (context.rootState.user.profile.token) {
+          // 已登录
+        } else {
+          // 未登录
+          // find 遍历数组 查找满足条件的元素项
+          // 1. 找出旧的商品信息
+          const oldGoods = context.state.list.find(item => item.skuId === oldSkuid)
+          // 2. 删除旧的商品信息
+          context.commit('deleteCart', oldSkuid)
+          // 3. 根据新的 sku 信息和旧的商品信息
+          const { skuId, price: nowPrice, specsText: attrsText, inventory: stock } = newSku
+          // 4. 新旧合拼成一条新的购物车信息数据
+          const newGoods = { ...oldGoods, skuId, nowPrice, attrsText, stock }
+          // 5. 添加新的商品
+          context.commit('insertCart', newGoods)
+          resolve()
+        }
+      })
+    },
+    // 合并购物车 一定是登录后的
+    async mergeCart (context) {
+      // 合并的参数
+      const cartList = context.state.list.map(goods => {
+        return {
+          skuId: goods.skuId,
+          selected: goods.selected,
+          count: goods.count
+        }
+      })
+      // 发请求
+      await mergeCart(cartList)
+      // 合并成功， 清空本地购物车
+      context.commit('setCart', [])
     }
+
   }
 }

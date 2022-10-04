@@ -166,8 +166,6 @@ export default ({
     const login = async () => {
       // Form组件提供了一个 validate 函数作为整体表单校验，但是返回的是一个promise
       const valid = await formCom.value.validate()
-      console.log(valid)
-
       if (valid) {
         let data = null
         try {
@@ -193,6 +191,13 @@ export default ({
           // 存储用户信息
           const { id, account, avatar, mobile, nickname, token } = data.result
           store.commit('user/setUser', { id, account, avatar, mobile, nickname, token })
+          // // 登录成功合并购物车, 清空本地购物车
+          // store.dispatch('cart/mergeCart').then(() => {
+          //   // 进行跳转
+          //   router.push(route.query.redirectUrl || '/')
+          //   // 成功消息提示
+          //   Message({ type: 'success', text: '登录成功' })
+          // })
           // 进行跳转
           router.push(route.query.redirectUrl || '/')
           // 成功消息提示
@@ -232,7 +237,7 @@ export default ({
           // 没有倒计时才可以发送
           await userMobileLoginMsg(form.mobile)
           Message({ type: 'success', text: '发送成功' })
-          time.value = 60
+          time.value = 30
           resume()
         }
       } else {

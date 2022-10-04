@@ -37,12 +37,11 @@ export default {
     // 2. 使用vueuse的useVModel做数据绑定, 修改 count 通知父组件更新
     const count = useVModel(props, 'modelValue', emit)
     const changeNum = (step) => {
-      console.log(step)
       // console.log(step)
       // 3. 得到将要改变的值， 如果值不合法终止程序
       const newValue = count.value + step
       if (newValue < props.min || newValue > props.max) {
-        console.log('合法')
+        // console.log('合法')
         return
       }
       // 4.正常情况改值即可
