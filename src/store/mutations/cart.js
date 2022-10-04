@@ -1,4 +1,4 @@
-import { getNewCartGoods, mergeCart } from '@/api/cart'
+import { getNewCartGoods, mergeCart, findCart, insertCart, deleteCart, updateCart, checkAllCart } from '@/api/cart'
 
 // 购物车模块
 export default {
@@ -118,6 +118,13 @@ export default {
       return new Promise((resolve, reject) => {
         if (context.rootState.user.profile.token) { // rootState 可以拿到vues下的文件数据
           // 已登录
+          // 先加入后端购物车， 然后在从后端获取购物车列表，设置购物车给本地存储
+          insertCart({ skuId: payload.skuId, count: payload.count }).then(() => {
+            return findCart()
+          }).then(data => {
+            context.commit('setCart', data.result)
+            resolve() // 代表 Promise 执行成功了
+          })
         } else {
           // 未登录
           context.commit('insertCart', payload)
@@ -130,6 +137,11 @@ export default {
       return new Promise((resolve, reject) => {
         if (context.rootState.user.profile.token) {
           // 已登录
+          findCart().then(data => {
+            // console.log(data.result)
+            context.commit('setCart', data.result)
+            resolve()
+          })
         } else {
           // 未登录
           // 同时发送请求(有几件商品就发几个请求)， 等所有请求成功，一并去修改本地数据
@@ -157,6 +169,13 @@ export default {
       return new Promise((resolve, reject) => {
         if (context.rootState.user.profile.token) {
           // 已登录
+          // 先删除后端购物车， 然后在从后端获取购物车列表，设置购物车给本地存储
+          deleteCart([payload]).then(() => {
+            return findCart()
+          }).then(data => {
+            context.commit('setCart', data.result)
+            resolve()
+          })
         } else {
           // 未登录
           // 单条删除 payload 现在就是skuId
@@ -171,6 +190,12 @@ export default {
       return new Promise((resolve, reject) => {
         if (context.rootState.user.profile.token) {
           // 已登录
+          updateCart({ ...payload }).then(() => {
+            return findCart()
+          }).then(data => {
+            context.commit('setCart', data.result)
+            resolve()
+          })
         } else {
           // 未登录
           context.commit('updateCart', payload)
@@ -183,6 +208,14 @@ export default {
       return new Promise((resolve, reject) => {
         if (context.rootState.user.profile.token) {
           // 已登录
+          // 在有效商品列表中
+          const ids = context.getters.validList.map(item => item.skuId)
+          checkAllCart({ selected, ids }).then(() => {
+            return findCart()
+          }).then(data => {
+            context.commit('setCart', data.result)
+            resolve()
+          })
         } else {
           // 未登录
           context.getters.validList.forEach(goods => {
@@ -197,6 +230,13 @@ export default {
       return new Promise((resolve, reject) => {
         if (context.rootState.user.profile.token) {
           // 已登录
+          const ids = context.getters[isClear ? 'invalidList' : 'selectedList'].map(item => item.skuId)
+          deleteCart(ids).then(() => {
+            return findCart()
+          }).then(data => {
+            context.commit('setCart', data.result)
+            resolve()
+          })
         } else {
           // 未登录
           // 找出选择的商品列表，遍历调用删除的 mutations
@@ -213,6 +253,19 @@ export default {
       return new Promise((resolve, reject) => {
         if (context.rootState.user.profile.token) {
           // 已登录
+          // 1. 找出旧的商品信息
+          const oldGoods = context.state.list.find(item => item.skuId === oldSkuid)
+          // 2. 删除旧的商品信息
+          deleteCart([oldGoods.skuId]).then(() => {
+            // 3. 根据旧商品的数量 + 新skuId
+            return insertCart({ skuId: newSku.skuId, count: oldGoods.count })
+          }).then(() => {
+            // 4. 添加新的商品 这里后台会帮我们处理，前端不需要操作, 只要用获取购物车列表
+            return findCart()
+          }).then(data => {
+            context.commit('setCart', data.result)
+            resolve()
+          })
         } else {
           // 未登录
           // find 遍历数组 查找满足条件的元素项
