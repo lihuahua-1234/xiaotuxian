@@ -1,6 +1,6 @@
 <!--添加和修改组件-->
 <template>
- <XtxDialog title="添加收货地址" v-model:visible="visibleDialog">
+ <XtxDialog :title="`${formData.id? '修改':'添加'}收货地址`" v-model:visible="visibleDialog">
 <!--表单-->
  <div class="xtx-form">
       <div class="xtx-form-item">
@@ -50,7 +50,7 @@
 
 <script>
 import { reactive, ref } from 'vue'
-import { addAddress } from '@/api/order'
+import { addAddress, editAddress } from '@/api/order'
 import Message from '@/components/library/Message'
 // import { Form, Field } from 'vee-validate'
 export default {
@@ -60,14 +60,21 @@ export default {
     const visibleDialog = ref(false)
 
     // 定义一个open函数 做为打开对话框
-    const open = () => {
+    const open = (address) => {
       visibleDialog.value = true
-      // 如果是添加 清空列表
-      for (const key in formData) {
-        if (key === 'isDefault') {
-          formData[key] = 1
-        } else {
-          formData[key] = null
+      if (address.id) {
+        // 如果有id 就是修改 填充表单
+        for (const key in address) {
+          formData[key] = address[key]
+        }
+      } else {
+        // 如果是添加 清空列表
+        for (const key in formData) {
+          if (key === 'isDefault') {
+            formData[key] = 1
+          } else {
+            formData[key] = null
+          }
         }
       }
     }
@@ -99,16 +106,28 @@ export default {
     const submit = () => {
       // 1. 省略了校验
       // 2. 发送请求了
-      addAddress(formData).then((data) => {
+      if (formData.id) {
+        // 修改请求
+        editAddress(formData).then(data => {
+          // 提示
+          Message({ type: 'success', text: '修改收货地址成功' })
+          // 关闭
+          visibleDialog.value = false
+          // 触发自定义事件  采用的是 reactive,不需要formData.value
+          emit('on-success', formData)
+        })
+      } else {
+        addAddress(formData).then(data => {
         // 需要设置ID
-        formData.id = data.result.id
-        // 提示
-        Message({ type: 'success', text: '添加收货地址成功' })
-        // 关闭
-        visibleDialog.value = false
-        // 触发自定义事件  采用的是 reactive,不需要formData.value
-        emit('on-success', formData)
-      })
+          formData.id = data.result.id
+          // 提示
+          Message({ type: 'success', text: '添加收货地址成功' })
+          // 关闭
+          visibleDialog.value = false
+          // 触发自定义事件  采用的是 reactive,不需要formData.value
+          emit('on-success', formData)
+        })
+      }
     }
 
     return { visibleDialog, open, formData, changeCity, submit }

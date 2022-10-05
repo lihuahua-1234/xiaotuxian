@@ -11,9 +11,25 @@ export const createOrder = () => {
 }
 
 /**
- * 提交收货地址
+ * 添加收货地址
  * @param {Object} from - 参考接口文档
  */
 export const addAddress = (from) => {
   return request('/member/address', 'POST', from)
+}
+
+/**
+ * 修改收货地址
+ * @param {Object} from - 参考接口文档
+ */
+export const editAddress = (from) => {
+  return request(`/member/address/${from.id}`, 'PUT', from)
+}
+
+/**
+ * 结束页面 - 提交订单
+ * @param {Object} params - 参考接口文档
+ */
+export const submitOrder = (params) => {
+  return request('/member/order', 'POST', params)
 }
