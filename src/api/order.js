@@ -33,3 +33,12 @@ export const editAddress = (from) => {
 export const submitOrder = (params) => {
   return request('/member/order', 'POST', params)
 }
+
+/**
+ * 获取订单详情
+ * @param {String} orderId - 订单Id
+ * @returns
+ */
+export const findOrderDetial = (orderId) => {
+  return request(`/member/order/${orderId}`, 'GET')
+}

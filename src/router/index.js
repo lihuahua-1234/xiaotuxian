@@ -11,6 +11,8 @@ const Login = () => import('@/views/login/index')
 const LoginCallback = () => import('@/views/login/callback')
 
 const Checkout = () => import('@/views/member/pay/checkout')
+const Pay = () => import('@/views/member/pay/index')
+const PayResult = () => import('@/views/member/pay/result')
 // 路由规则
 const routes = [
   // 一级路由布局容器
@@ -23,7 +25,9 @@ const routes = [
       { path: '/category/sub/:id', component: SubCategory }, // 二级分类地址
       { path: '/product/:id', component: Goods }, // 二级分类地址
       { path: '/cart', component: Cart }, // 二级分类地址
-      { path: '/member/checkout', component: Checkout }// 二级分类地址
+      { path: '/member/checkout', component: Checkout }, // 二级分类地址
+      { path: '/member/pay', component: Pay }, // 二级分类地址
+      { path: '/pay/callback', component: PayResult }// 二级分类地址
     ]
   },
   { path: '/login', component: Login }, // 一级分类地址
