@@ -12,4 +12,7 @@ import 'normalize.css'
 // 2. 自己项目的重置样式和公用样式
 import '@/assets/styles/common.less'
 
+// 3. 模拟mock数据
+import '@/mock'
+
 createApp(App).use(store).use(router).use(UI).use(Base64).mount('#app')
