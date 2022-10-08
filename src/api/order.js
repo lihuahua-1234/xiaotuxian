@@ -3,11 +3,19 @@ import request from '@/utils/request'
 // API接口 http://zhoushugang.gitee.io/erabbit-client-pc-document/api.html
 
 /**
- * 结束页面 - 生成订单
+ * 结束页面 - 生成订单 - 根据购物车选择商品
  * @returns
  */
 export const createOrder = () => {
   return request('/member/order/pre', 'GET')
+}
+
+/**
+ * 结束页面 - 生成订单 - 根据订单中商品-再次购买
+ * @returns
+ */
+export const repurchaseOrder = (orderId) => {
+  return request(`/member/order/repurchase/${orderId}`, 'GET')
 }
 
 /**
@@ -52,4 +60,41 @@ export const findOrderDetial = (orderId) => {
  */
 export const findOrderList = ({ page = 1, pageSize = 10, orderState = 0 }) => {
   return request('/member/order', 'GET', { page, pageSize, orderState })
+}
+
+/**
+ * 取下订单
+ * @param {String} orderId - 订单Id
+ * @param {String} cancelReason - 取消原因
+ * @returns
+ */
+export const CancelOrder = ({ orderId, cancelReason }) => {
+  return request(`/member/order/${orderId}/cancel`, 'PUT', { cancelReason })
+}
+
+/**
+ * 删除订单
+ * @param {Array<string>} ids - 删除订单，id集合
+ * @returns
+ */
+export const delteOrder = (orderId) => {
+  return request('/member/order', 'DELETE', { ids: [orderId] })
+}
+
+/**
+ * 确认收货
+ * @param {string} orderId - 确认收货
+ * @returns
+ */
+export const confirmOrder = (orderId) => {
+  return request(`/member/order/${orderId}/receipt`, 'PUT')
+}
+
+/**
+ * 查看物流
+ * @param {string} orderId - 订单Id
+ * @returns
+ */
+export const logosticsOrder = (orderId) => {
+  return request(`/member/order/${orderId}/logistics`, 'GET')
 }

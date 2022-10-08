@@ -1,4 +1,4 @@
-<!--结算-页面布局-->
+ <!--结算-页面布局-->
 <template>
   <div class="xtx-pay-checkout-page" v-if="order">
     <div class="container">
@@ -80,21 +80,33 @@
 </template>
 <script>
 import CheckoutAddress from './components/checkout-address'
-import { createOrder, submitOrder } from '@/api/order'
+import { createOrder, submitOrder, repurchaseOrder } from '@/api/order'
 import { reactive, ref } from 'vue'
 import Message from '@/components/library/Message'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 export default {
   components: { CheckoutAddress },
   name: 'XtxPayCheckoutPage',
   setup () {
     // 结束功能-生成订单-订单信息
     const order = ref(null)
-    createOrder().then(data => {
-      order.value = data.result
-      // console.log(data.result)
-      reqParams.goods = data.result.goods.map(({ skuId, count }) => ({ skuId, count }))
-    })
+    const route = useRoute()
+
+    if (route.query.orderId) {
+      // 按照订单中商品结算
+      repurchaseOrder(route.query.orderId).then(data => {
+        order.value = data.result
+        // console.log(data.result)
+        reqParams.goods = data.result.goods.map(({ skuId, count }) => ({ skuId, count }))
+      })
+    } else {
+      // 按照购物车商品结算
+      createOrder().then(data => {
+        order.value = data.result
+        // console.log(data.result)
+        reqParams.goods = data.result.goods.map(({ skuId, count }) => ({ skuId, count }))
+      })
+    }
 
     // 接收收货地址ID
     const changeAddress = (id) => {
